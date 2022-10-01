@@ -8,14 +8,14 @@ COLOR_BLACK = -1
 COLOR_WHITE = 1
 COLOR_NONE = 0
 random.seed(0)
-weight = np.array([[900, -60, 10, 15, 15, 10, -60, 900],
-                   [-60, -80, 5, -1, -1, 5,  -80, -60],
-                   [10,    5, 5,  1,  1, 5,    5,  10],
-                   [15,   -1, 1,  1,  1, 1,   -1,  15],
-                   [15,   -1, 1,  1,  1, 1,   -1,  15],
-                   [10,    5, 5,  1,  1, 5,    5,  10],
-                   [-60, -80, 5, -1, -1, 5,  -80, -60],
-                   [900, -60, 10, 15, 15, 10, -60, 900]])
+weight = np.array([[900, -5, 20, 15, 15, 20, -5, 900],
+                   [-5, -10, 9,  3,  3, 9,  -10, -5],
+                   [20,    9, 9,  7,  7, 9,    9,  20],
+                   [15,    3, 7, 10, 10, 7,    3,  15],
+                   [15,    3, 7, 10, 10, 7,    3,  15],
+                   [20,    9, 9,  7,  7, 9,    9,  20],
+                   [-5, -10, 9,  3,  3, 9,   -10, -5],
+                   [900, -5, 20, 15, 15, 20, -5, 900]])
 
 
 # don't change the class name
@@ -30,7 +30,6 @@ class AI(object):
         self.candidate_list = []
 
     def find_end(self, color, other_color, node, direction, chessboard):
-        num = 0
         turn = []
         while 8 > node[0] > -1 and 8 > node[1] > -1 \
                 and chessboard[(node[0], node[1])] == color:
@@ -40,7 +39,7 @@ class AI(object):
         if 8 > node[0] > -1 and 8 > node[1] > -1 and chessboard[(node[0], node[1])] == other_color:
             return turn
         else:
-            return None, 0
+            return None
 
     def end(self, color, chessboard, depth, whole_depth, self_num):
         step = []
@@ -86,7 +85,7 @@ class AI(object):
                     num += self_num
                 else:
                     num = self_num - num
-                    num += 1
+                    num += weight[var]
                 if depth == whole_depth:
                     self.candidate_list.append(var)
                 if depth > 1:
@@ -191,10 +190,10 @@ class AI(object):
                     idx += 1
                 elif chessboard[(i, j)] == COLOR_NONE:
                     idx2 += 1
-        if idx2 <= 8:
+        if idx2 <= 10:
             self.end(self.color, chessboard, idx2, idx2, idx)
         else:
-            self.find(self.color, chessboard, 5, 5, self_weight)
+            self.find(self.color, chessboard, 4, 4, self_weight)
 
 # ==============Find new pos========================================
 # Make sure that the position of your decision on the chess board is empty.
