@@ -16,6 +16,7 @@ good = [(1, 2), (1, 3), (1, 4), (1, 5), (6, 2), (6, 3),
         (6, 4), (6, 5), (2, 1), (3, 1), (4, 1), (5, 1),
         (2, 6), (3, 6), (4, 6), (5, 6)]
 best = [(0, 1), (1, 1), (1, 0), (0, 6), (1, 6), (1, 7), (6, 1), (7, 1), (6, 0), (6, 6), (7, 6), (6, 7)]
+middle = [(3, 3), (3, 4), (4, 4), (4, 3)]
 
 
 # don't change the class name
@@ -47,24 +48,27 @@ class AI(object):
         num = 0
         for i in bad:
             if chessboard[(i[0], i[1])] == self.color:
-                num += 10000
+                num += 1000
             elif chessboard[(i[0], i[1])] != COLOR_NONE:
-                num -= 10000
+                num -= 1000
         for i in worse:
             if chessboard[(i[0], i[1])] == self.color:
-                num += 50
+                num += 5
             elif chessboard[(i[0], i[1])] != COLOR_NONE:
-                num -= 50
+                num -= 5
         for i in good:
             if chessboard[(i[0], i[1])] == self.color:
-                num -= 50
+                num -= 3
             elif chessboard[(i[0], i[1])] != COLOR_NONE:
-                num += 50
+                num += 3
         for i in best:
             if chessboard[(i[0], i[1])] == self.color:
-                num -= 100
+                num -= 6
+                for i in middle:
+                    if chessboard[(i[0], i[1])] == self.color:
+                        num += 10
             elif chessboard[(i[0], i[1])] != COLOR_NONE:
-                num += 100
+                num += 6
         return num
 
     def find(self, color, chessboard, depth, whole_depth, self_num, end_sign):
@@ -120,7 +124,7 @@ class AI(object):
                 else:
                     if end_sign == 0:
                         z = self.judge(chessboard)
-                        score.append(z + num * 5)
+                        score.append(z + num)
                     else:
                         score.append(num)
                 for j in range(len(turn)):
@@ -147,10 +151,10 @@ class AI(object):
         idx = list(zip(idx[0], idx[1]))
         idx2 = np.where(chessboard == COLOR_NONE)
         idx2 = list(zip(idx2[0], idx2[1]))
-        if len(idx2) <= 15:
+        if len(idx2) <= 10:
             self.find(self.color, chessboard, len(idx2), len(idx2), len(idx), 1)
         else:
-            self.find(self.color, chessboard, 1, 1, len(idx), 0)
+            self.find(self.color, chessboard, 3, 3, len(idx), 0)
 
 
 # ==============Find new pos========================================
