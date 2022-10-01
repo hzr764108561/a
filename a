@@ -1,0 +1,209 @@
+import math
+
+import numpy as np
+import random
+import time
+
+COLOR_BLACK = -1
+COLOR_WHITE = 1
+COLOR_NONE = 0
+random.seed(0)
+weight = np.array([[900, -60, 10, 15, 15, 10, -60, 900],
+                   [-60, -80, 5, -1, -1, 5,  -80, -60],
+                   [10,    5, 5,  1,  1, 5,    5,  10],
+                   [15,   -1, 1,  1,  1, 1,   -1,  15],
+                   [15,   -1, 1,  1,  1, 1,   -1,  15],
+                   [10,    5, 5,  1,  1, 5,    5,  10],
+                   [-60, -80, 5, -1, -1, 5,  -80, -60],
+                   [900, -60, 10, 15, 15, 10, -60, 900]])
+
+
+# don't change the class name
+class AI(object):
+    # chessboard_size, color, time_out passed from agent
+    def __init__(self, chessboard_size, color, time_out):
+        self.chessboard_size = chessboard_size
+        # You are white or black
+        self.color = color
+        # the max time you should use, your algorithm's run time must not exceed the time limit.
+        self.time_out = time_out
+        self.candidate_list = []
+
+    def find_end(self, color, other_color, node, direction, chessboard):
+        num = 0
+        turn = []
+        while 8 > node[0] > -1 and 8 > node[1] > -1 \
+                and chessboard[(node[0], node[1])] == color:
+            turn.append((node[0], node[1]))
+            node[0] += direction[0]
+            node[1] += direction[1]
+        if 8 > node[0] > -1 and 8 > node[1] > -1 and chessboard[(node[0], node[1])] == other_color:
+            return turn
+        else:
+            return None, 0
+
+    def end(self, color, chessboard, depth, whole_depth, self_num):
+        step = []
+        score = []
+        is_self = False
+        if self.color == COLOR_BLACK:
+            if self.color == color:
+                other_color = COLOR_WHITE
+                is_self = True
+            else:
+                other_color = COLOR_BLACK
+        else:
+            if self.color == color:
+                other_color = COLOR_BLACK
+                is_self = True
+            else:
+                other_color = COLOR_WHITE
+        idx = np.where(chessboard == COLOR_NONE)
+        idx = list(zip(idx[0], idx[1]))
+        for i in range(len(idx)):
+            turn = []
+            var = idx[i]
+            for j in range(-1, 2):
+                for k in range(-1, 2):
+                    if j == k == 0:
+                        continue
+                    if 8 > var[0] + j > -1 and 8 > var[1] + k > -1 and \
+                            chessboard[(var[0] + j, var[1] + k)] == other_color:
+                        a = var[0] + j
+                        b = var[1] + k
+                        z = self.find_end(other_color, color, [a, b], (j, k), chessboard)
+                        if z is not None:
+                            turn += z
+            if turn:
+                num = 0
+                chessboard[var] = color
+                turn.append(var)
+                for j in range(len(turn)):
+                    chessboard[turn[j]] = color
+                    num += 1
+                step.append(var)
+                if is_self:
+                    num += self_num
+                else:
+                    num = self_num - num
+                    num += 1
+                if depth == whole_depth:
+                    self.candidate_list.append(var)
+                if depth > 1:
+                    m = self.find(other_color, chessboard, depth - 1, whole_depth, num)
+                    if m is not None:
+                        score.append(m)
+                else:
+                    score.append(num)
+                for j in range(len(turn)):
+                    chessboard[turn[j]] = other_color
+                chessboard[var] = COLOR_NONE
+        if score:
+            if is_self:
+                var1 = score.index(min(score))
+            else:
+                var1 = score.index(max(score))
+            if depth == whole_depth:
+                if self.candidate_list:
+                    self.candidate_list.append(self.candidate_list.pop(var1))
+            return score[var1]
+
+    def find(self, color, chessboard, depth, whole_depth, self_weight):
+        step = []
+        score = []
+        is_self = False
+        if self.color == COLOR_BLACK:
+            if self.color == color:
+                other_color = COLOR_WHITE
+                is_self = True
+            else:
+                other_color = COLOR_BLACK
+        else:
+            if self.color == color:
+                other_color = COLOR_BLACK
+                is_self = True
+            else:
+                other_color = COLOR_WHITE
+        idx = np.where(chessboard == COLOR_NONE)
+        idx = list(zip(idx[0], idx[1]))
+        for i in range(len(idx)):
+            turn = []
+            var = idx[i]
+            for j in range(-1, 2):
+                for k in range(-1, 2):
+                    if j == k == 0:
+                        continue
+                    if 8 > var[0] + j > -1 and 8 > var[1] + k > -1 and \
+                            chessboard[(var[0] + j, var[1] + k)] == other_color:
+                        a = var[0] + j
+                        b = var[1] + k
+                        z = self.find_end(other_color, color, [a, b], (j, k), chessboard)
+                        if z is not None:
+                            turn += z
+            if turn:
+                num = 0
+                chessboard[var] = color
+                turn.append(var)
+                for j in range(len(turn)):
+                    chessboard[turn[j]] = color
+                    num += weight[(turn[j])]
+                step.append(var)
+                if is_self:
+                    num += self_weight
+                else:
+                    num = self_weight - num
+                    num += weight[var]
+                if depth == whole_depth:
+                    self.candidate_list.append(var)
+                if depth > 1:
+                    m = self.find(other_color, chessboard, depth - 1, whole_depth, num)
+                    if m is not None:
+                        score.append(m)
+                else:
+                    score.append(num)
+                for j in range(len(turn)):
+                    chessboard[turn[j]] = other_color
+                chessboard[var] = COLOR_NONE
+        if score:
+            if is_self:
+                var1 = score.index(min(score))
+            else:
+                var1 = score.index(max(score))
+            if depth == whole_depth:
+                if self.candidate_list:
+                    self.candidate_list.append(self.candidate_list.pop(var1))
+            return score[var1]
+
+    # The input is the current chessboard. Chessboard is a numpy array.
+    def go(self, chessboard):
+        # Clear candidate_list, must do this step
+        self.candidate_list.clear()
+        # ==================================================================
+        # Write your algorithm here
+        # Here is the simplest sample:Random decision
+        self_weight = 0
+        idx = 0
+        idx2 = 0
+        for i in range(8):
+            for j in range(8):
+                if chessboard[(i, j)] == self.color:
+                    self_weight += weight[(i, j)]
+                    idx += 1
+                elif chessboard[(i, j)] == COLOR_NONE:
+                    idx2 += 1
+        if idx2 <= 8:
+            self.end(self.color, chessboard, idx2, idx2, idx)
+        else:
+            self.find(self.color, chessboard, 5, 5, self_weight)
+
+# ==============Find new pos========================================
+# Make sure that the position of your decision on the chess board is empty.
+# If not, the system will return error.
+# Add your decision into candidate_list, Records the chessboard
+# You need to add all the positions which are valid
+# candidate_list example: [(3,3),(4,4)]
+# You need append your decision at the end of the candidate_list,
+# candidate_list example: [(3,3),(4,4),(4,4)]
+# we will pick the last element of the candidate_list as the position you choose.
+# In above example, we will pick (4,4) as your decision.
+# If there is no valid position, you must return an empty list.
